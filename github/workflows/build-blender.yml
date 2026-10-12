@@ -1,0 +1,27 @@
+name: Build BrickWorld Blender Scene
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender
+      - name: Generate Blender scene and preview
+        run: |
+          mkdir -p output
+          blender -b --python BrickWorld_Prototype_01.py -- --output "$GITHUB_WORKSPACE/output"
+      - name: Upload Blender files
+        uses: actions/upload-artifact@v4
+        with:
+          name: BrickWorld-Prototype-01
+          path: |
+            output/BrickWorld_Prototype_01.blend
+            output/BrickWorld_Preview_01.png
+          if-no-files-found: error

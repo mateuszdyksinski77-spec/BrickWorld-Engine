@@ -139,7 +139,9 @@ def build():
     light.data.shape = 'DISK'
     light.data.size = 25
     scene = bpy.context.scene
-    scene.render.engine = 'BLENDER_EEVEE_NEXT' if bpy.app.version >= (4,2,0) else 'BLENDER_EEVEE'
+    scene.render.engine = 'CYCLES'
+    scene.cycles.device = 'CPU'
+    scene.cycles.samples = 12
     scene.render.resolution_x = 1280
     scene.render.resolution_y = 720
     scene.render.resolution_percentage = 100
@@ -157,9 +159,10 @@ def main():
     bpy.ops.wm.save_as_mainfile(filepath=str(blend_file))
     scene.render.filepath = str(png_file)
     scene.render.image_settings.file_format = 'PNG'
-    bpy.ops.render.render(write_still=True)
+    if '--render' in args:
+        bpy.ops.render.render(write_still=True)
+        print('CREATED:', png_file)
     print('CREATED:', blend_file)
-    print('CREATED:', png_file)
 
 
 if __name__ == '__main__':

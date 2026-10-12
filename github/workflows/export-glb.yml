@@ -1,0 +1,48 @@
+name: Export BrickWorld GLB for Android
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-glb:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Blender and virtual display
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender xvfb libgl1-mesa-dri
+          blender --version
+
+      - name: Generate Blender scene
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          MESA_GL_VERSION_OVERRIDE: '3.3'
+        run: |
+          mkdir -p output
+          xvfb-run -a blender -b --factory-startup --python-exit-code 1 --python BrickWorld_Prototype_01.py -- --output "$GITHUB_WORKSPACE/output"
+          test -s output/BrickWorld_Prototype_01.blend
+
+      - name: Export GLB
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          MESA_GL_VERSION_OVERRIDE: '3.3'
+        run: |
+          xvfb-run -a blender -b output/BrickWorld_Prototype_01.blend --python-exit-code 1 --python export_glb.py -- --output "$GITHUB_WORKSPACE/output/BrickWorld_Prototype_01.glb"
+          test -s output/BrickWorld_Prototype_01.glb
+
+      - name: Upload Android GLB and Blender project
+        uses: actions/upload-artifact@v4
+        with:
+          name: BrickWorld-Android-3D
+          path: |
+            output/BrickWorld_Prototype_01.glb
+            output/BrickWorld_Prototype_01.blend
+          if-no-files-found: error
+          retention-days: 14
